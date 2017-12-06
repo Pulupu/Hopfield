@@ -1,0 +1,2 @@
+# Hopfield
+homework
