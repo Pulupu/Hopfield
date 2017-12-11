@@ -45,7 +45,9 @@ def hopfield_test(picture_memory,picture_testing,weights,theta):
     for pic_num in range(len(picture_testing)):
         x = copy.deepcopy(picture_testing[pic_num])
         recall = False
-        while(not recall):
+        training_times = 0
+        while((not recall) and not (training_times > 1000)):
+            training_times += 1
             for xj in range(x.size):
                 if((weights[xj]*x.getT()-theta[xj])>0):
                     x[0,xj] = 1
@@ -70,16 +72,18 @@ def hopfield_test(picture_memory,picture_testing,weights,theta):
     return recall_result
 pic_rows = 13
 pic_columns = 9
-
 win = tk.Tk()
 win.title("Hopfield")
-win.geometry("800x450")
+win.geometry("800x800")
 win.resizable(False,False)
 path_f1 = tk.StringVar()
 path_f2 = tk.StringVar()
 path_label1 = tk.Label(win,textvariable = path_f1)
 path_label2 = tk.Label(win,textvariable = path_f2)
-result = "123123123"
+row_label = tk.Label(win,text="row")
+column_label = tk.Label(win,text="column")
+row_text = tk.Text(win,height=1,width=10)
+column_text = tk.Text(win,height=1,width=10)
 
 def open_file():
     openf = tkf.askopenfilename(filetypes = (("Template files", "*.txt"),("HTML files", "*.html;*.htm"),("All files", "*.*") ))
@@ -91,21 +95,25 @@ def open_file():
 open_file = tk.Button(win,text="open file",command = open_file)
 
 def training():
+    pic_rows = int(row_text.get("1.0","end"))
+    pic_columns = int(column_text.get("1.0","end"))
     picture_memory = read_file(path_f1.get(),pic_rows,pic_columns)
     picture_testing = read_file(path_f2.get(),pic_rows,pic_columns)
     weights,theta = hopfield_memory(picture_memory,pic_rows,pic_columns)
     recall_result = hopfield_test(picture_memory,picture_testing,weights,theta)
+    scroll.delete("1.0","end")
     for j in recall_result:        
         output = ""
+        output += "pic : " + str(j[0]) + "\n"
         for i in range(picture_testing[j[0]][0].size):            
             if(picture_testing[j[0]][0,i]==1):
                 output += "■"
             else:
                 output += "□"
             if((i+1)%pic_columns==0):
-                output += "\n"
+                output += "\n"        
         output += "\n"
-        for i in range(picture_memory[j[1]][0].size):            
+        for i in range(picture_memory[j[1]][0].size):         
             if(picture_memory[j[1]][0,i]==1):
                 output += "■"
             else:
@@ -113,15 +121,20 @@ def training():
             if((i+1)%pic_columns==0):
                 output += "\n"
         output += "\n\n\n\n\n"
-        scroll.insert("insert",output)        
+        scroll.insert("insert",output)
+        
         
 btn_train = tk.Button(win,text="Start",command = training)
 
-scroll = tks.ScrolledText(win)
+scroll = tks.ScrolledText(win,height=100)
 
 path_label1.pack()
 path_label2.pack()
 open_file.pack()
 btn_train.pack()
+row_label.pack()
+row_text.pack()
+column_label.pack()
+column_text.pack()
 scroll.pack()
 win.mainloop()
